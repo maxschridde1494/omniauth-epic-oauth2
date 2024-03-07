@@ -1,0 +1,1 @@
+require 'omniauth/strategies/epic_oauth2'
