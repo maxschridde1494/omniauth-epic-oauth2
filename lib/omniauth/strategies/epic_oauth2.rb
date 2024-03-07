@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require 'omniauth-oauth2'
 
 module OmniAuth
   module Strategies
+    # Main class for Epic OAuth2 strategy.
     class EpicOauth2 < OmniAuth::Strategies::OAuth2
       option :name, 'epic'
 
