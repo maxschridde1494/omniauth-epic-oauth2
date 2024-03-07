@@ -21,20 +21,51 @@ And then execute:
 
 Here's an example for adding the middleware to a Rails app in `config/initializers/omniauth.rb `:
 
-```
+```ruby
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :epic_oauth2, ENV.fetch('EPIC_CLIENT_ID'), ENV.fetch('EPIC_CLIENT_SECRET'), strategy_class: OmniAuth::Strategies::EpicOauth2, scope: 'basic_profile'
 end
-OmniAuth.config.allowed_request_methods = %i[get]
 ```
 
 You can now access the OmniAuth Epic OAuth2 URL at `auth/epic_oauth2`
+
+## Auth Hash
+
+Here's an example of an authentication hash available in the callback by accessing `request.env['omniauth.auth']`:
+
+```ruby
+{
+  "provider"=>"epic",
+  "uid"=>"100000000000000000000",
+  "info"=>{
+    "name" => "John Smith", 
+    "accountId"=>"100000000000000000000", 
+    "displayName"=>"johnsmith", 
+    "linkedAccounts"=>[{"displayName"=>"johnsmith", "identityProviderId"=>"steam"}], 
+    "preferredLanguage"=>"en"
+  },
+  "extra"=>{
+    "raw_info"=>{
+      "accountId"=>"100000000000000000000", 
+      "displayName"=>"johnsmith", 
+      "linkedAccounts"=>[{"displayName"=>"johnsmith", "identityProviderId"=>"steam"}], 
+      "preferredLanguage"=>"en"
+    }
+  },                               
+  "credentials"=>{
+    "token"=> "TOKEN",
+    "expires"=>true,
+    "expires_at"=>1706146147,
+    "refresh_token"=>"REFRESH_TOKEN"
+  }
+}
+```
 
 ### Integrate with Devise 
 
 In `config/initializers/devise.rb`
 
-```
+```ruby
 Devise.setup do |config|
   ...
   config.omniauth :epic, ENV.fetch('EPIC_CLIENT_ID'), ENV.fetch('EPIC_CLIENT_SECRET'), strategy_class: OmniAuth::Strategies::EpicOauth2, scope: 'basic_profile'
@@ -46,19 +77,19 @@ NOTE: If you are using this gem with devise with above snippet in `config/initia
 
 Then add the following to `config/routes.rb` so the callback routes are defined.
 
-```
+```ruby
 devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
 ```
 
 Make sure your model is omniauthable. Generally this is `app/models/user.rb`
 
-```
+```ruby
 devise :omniauthable, omniauth_providers: [:epic_oauth2]
 ```
 
 Then make sure your callbacks controller is setup.
 
-```
+```ruby
 # app/controllers/users/omniauth_callbacks_controller.rb:
 
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
@@ -77,24 +108,6 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
 end
 ```
 
-and bind to or create the user
-
-```
-def self.from_omniauth(access_token)
-    data = access_token.info
-    user = User.where(email: data['email']).first
-
-    # Uncomment the section below if you want users to be created if they don't exist
-    # unless user
-    #     user = User.create(name: data['name'],
-    #        email: data['email'],
-    #        password: Devise.friendly_token[0,20]
-    #     )
-    # end
-    user
-end
-```
-
 For your views you can login using:
 
 ```
@@ -109,6 +122,7 @@ For your views you can login using:
 ```
 
 An overview is available at https://github.com/plataformatec/devise/wiki/OmniAuth:-Overview
+
 
 ## Development
 
